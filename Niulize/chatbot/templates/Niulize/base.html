@@ -62,6 +62,7 @@
       text-align: center;
       letter-spacing: 1px;
       border-bottom: 1px solid #e3e3e3;
+      font-family: 'Arial', sans-serif;
     }
     
     #chatbot-messages {
@@ -132,11 +133,13 @@
   </style>
 </head>
 <body>
+  {% csrf_token %}
   <!-- Chat Button -->
-  <button id="chatbot-button"><i class="fas fa-comments"></i></button>
+  <button id="chatbot-button"><i class="fa-regular fa-comment-dots"></i></button>
 
   <!-- Chat Window -->
   <div id="chatbot-window">
+    <div id="chatbot-header">Niulize Mimi</div>
     <div id="chatbot-messages"></div>
     <div id="chatbot-input">
       <input type="text" id="chat-input" placeholder="Type a message...">
@@ -188,11 +191,15 @@
         appendMessage(text, 'user');
         input.value = '';
 
-        fetch('/chatbot/', {
+        // Get CSRF token
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        // Send request to Django backend
+        fetch('/chat/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': csrftoken
             },
             body: JSON.stringify({ message: text })
         })
