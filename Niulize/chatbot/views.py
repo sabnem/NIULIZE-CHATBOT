@@ -1,89 +1,54 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from .models import FAQ, ChatLog
 import json
 import re
 
-# Predefined FAQ responses with improved matching
-FAQ_RESPONSES = {
-    'greeting': {
-        'keywords': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'],
-        'response': 'Hello! Welcome to Niulize. How can I help you today? You can ask me about our services, pricing, support, or contact information.'
-    },
-    'services': {
-        'keywords': ['service', 'services', 'what do you do', 'what do you offer', 'products', 'web development', 'mobile app', 'digital marketing'],
-        'response': 'We offer comprehensive digital solutions:\n• Web Development (Custom websites, e-commerce)\n• Mobile App Development (iOS & Android)\n• Digital Marketing (SEO, Social Media, PPC)\n• UI/UX Design\n• Consulting Services\n\nWhich service interests you most?'
-    },
-    'web_development': {
-        'keywords': ['web development', 'website', 'web design', 'html', 'css', 'javascript', 'frontend', 'backend'],
-        'response': 'Our web development services include:\n• Custom website development\n• E-commerce solutions\n• Content Management Systems\n• Responsive design\n• Website maintenance\n\nWe use modern technologies like React, Django, and Node.js.'
-    },
-    'mobile_app': {
-        'keywords': ['mobile app', 'app development', 'ios', 'android', 'mobile application'],
-        'response': 'We develop mobile applications for:\n• iOS (iPhone/iPad)\n• Android devices\n• Cross-platform solutions\n• App Store optimization\n• App maintenance and updates\n\nOur apps are built using React Native and native technologies.'
-    },
-    'pricing': {
-        'keywords': ['price', 'pricing', 'cost', 'how much', 'expensive', 'cheap', 'affordable', 'quote', 'estimate'],
-        'response': 'Our pricing structure:\n• Web Development: Starting from $2,000\n• Mobile Apps: Starting from $5,000\n• Digital Marketing: $500-2,000/month\n• Custom quotes available\n\nContact us for a detailed proposal tailored to your needs.'
-    },
-    'contact': {
-        'keywords': ['contact', 'phone', 'email', 'address', 'reach you', 'get in touch'],
-        'response': 'Contact Information:\n📧 Email: info@niulize.com\n📞 Phone: +1-234-567-8900\n💬 WhatsApp: +1-234-567-8900\n📍 Address: 123 Business Street, City, State 12345\n🌐 Website: www.niulize.com'
-    },
-    'support': {
-        'keywords': ['support', 'help', 'problem', 'issue', 'bug', 'technical', 'assistance'],
-        'response': 'Technical Support:\n📧 Email: support@niulize.com\n📞 Hotline: +1-234-567-8901\n⏰ Hours: Monday-Friday, 9 AM - 6 PM\n🎫 Ticket System: Available on our website\n\nFor urgent issues, please call our hotline.'
-    },
-    'hours': {
-        'keywords': ['hours', 'open', 'closed', 'working hours', 'business hours', 'when', 'schedule'],
-        'response': 'Business Hours:\n🕘 Monday - Friday: 9:00 AM - 6:00 PM\n🕙 Saturday: 10:00 AM - 4:00 PM\n🚫 Sunday: Closed\n\nFor after-hours support, please email us and we\'ll respond within 24 hours.'
-    },
-    'location': {
-        'keywords': ['location', 'where', 'address', 'office', 'visit', 'directions'],
-        'response': 'Our Office Location:\n📍 123 Business Street, City, State 12345\n🚗 Parking available on-site\n🚇 Near Metro Station (Blue Line)\n\nVisitors welcome during business hours. Please schedule an appointment in advance.'
-    },
-    'team': {
-        'keywords': ['team', 'staff', 'developers', 'who', 'about us', 'company'],
-        'response': 'Our Team:\n• 15+ experienced developers\n• UI/UX designers\n• Project managers\n• Quality assurance specialists\n• Digital marketing experts\n\nWe\'re a passionate team dedicated to delivering exceptional digital solutions.'
-    },
-    'portfolio': {
-        'keywords': ['portfolio', 'work', 'projects', 'examples', 'showcase', 'case studies'],
-        'response': 'Our Portfolio:\n• 200+ websites delivered\n• 50+ mobile apps launched\n• Clients across 15+ industries\n• 99% client satisfaction rate\n\nVisit our website to see detailed case studies and client testimonials.'
-    },
-    'technologies': {
-        'keywords': ['technology', 'technologies', 'tech stack', 'programming', 'frameworks'],
-        'response': 'Technologies We Use:\n• Frontend: React, Vue.js, Angular\n• Backend: Python/Django, Node.js, PHP\n• Mobile: React Native, Flutter, Swift, Kotlin\n• Database: PostgreSQL, MongoDB, MySQL\n• Cloud: AWS, Azure, Google Cloud'
-    }
-}
+def get_client_ip(request):
+    """Get client IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 def find_best_match(user_message):
-    """Find the best matching FAQ response based on keywords"""
+    """Find the best matching FAQ response from database based on keywords"""
     user_message = user_message.lower().strip()
     
     # Remove common punctuation
     user_message = re.sub(r'[?!.,]', '', user_message)
     
+    # Get all active FAQs ordered by priority
+    faqs = FAQ.objects.filter(is_active=True).order_by('-priority', 'title')
+    
     # Check for exact or partial matches with scoring
     best_match = None
     highest_score = 0
+    matched_faq = None
     
-    for category, faq in FAQ_RESPONSES.items():
+    for faq in faqs:
         score = 0
-        for keyword in faq['keywords']:
+        keywords = faq.get_keywords_list()
+        
+        for keyword in keywords:
             if keyword in user_message:
                 # Give higher score for longer keyword matches
                 score += len(keyword.split())
         
         if score > highest_score:
             highest_score = score
-            best_match = faq['response']
+            best_match = faq.response
+            matched_faq = faq
     
     # Return best match or default response
     if best_match:
-        return best_match
+        return best_match, matched_faq
     
     # Default response with suggestions
-    return """I'm sorry, I didn't understand your question. Here are some topics I can help with:
+    default_response = """I'm sorry, I didn't understand your question. Here are some topics I can help with:
 
 🏢 **Company Information:**
 • About our team and company
@@ -104,6 +69,8 @@ def find_best_match(user_message):
 • Technical support
 
 Please try asking about one of these topics, or rephrase your question."""
+    
+    return default_response, None
 
 @csrf_exempt
 def chatbot_view(request):
@@ -124,11 +91,23 @@ def chatbot_view(request):
             # Log the user message (optional, for debugging)
             print(f"User question: {user_message}")
             
-            # Find the best matching response
-            bot_response = find_best_match(user_message)
+            # Find the best matching response from database
+            bot_response, matched_faq = find_best_match(user_message)
             
             # Log the bot response (optional, for debugging)
             print(f"Bot answer: {bot_response[:50]}...")
+            
+            # Save chat log to database
+            try:
+                ChatLog.objects.create(
+                    user_message=user_message,
+                    bot_response=bot_response,
+                    matched_faq=matched_faq,
+                    ip_address=get_client_ip(request)
+                )
+            except Exception as log_error:
+                print(f"Error saving chat log: {str(log_error)}")
+                # Continue even if logging fails
             
             return JsonResponse({
                 'response': bot_response,
