@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib import admin
+from django.contrib.auth.models import User
 
 class FAQCategory(models.Model):
     """Categories for organizing FAQ items"""
@@ -47,6 +48,7 @@ class FAQ(models.Model):
 
 class ChatLog(models.Model):
     """Log of chat interactions for analytics"""
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     user_message = models.TextField()
     bot_response = models.TextField()
     matched_faq = models.ForeignKey(FAQ, on_delete=models.SET_NULL, null=True, blank=True)

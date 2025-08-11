@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Add this line after your meta charset -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <title>Chatbot Widget</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>{% block title %}Niulize Chat{% endblock %}</title>
+  {% block extra_css %}{% endblock %}
   <style>
     * {
         margin: 0;
@@ -15,6 +16,74 @@
 
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Navigation Bar */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        z-index: 1001;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navbar-brand {
+        font-size: 40px;
+        font-weight: bold;
+        color: #efeaf1;
+        text-decoration: none;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .navbar-brand:hover {
+        color: white;
+        transition: all 0.3s ease;
+        transform: scale(1.1);
+    }
+
+    .navbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .nav-link {
+        color: #f0e9e9;
+        text-decoration: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .nav-link:hover {
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .nav-link.logout {
+        color: rgb(166, 62, 62);
+    }
+
+    .nav-link.logout:hover {
+        background: #c82333;
+    }
+
+    .user-info {
+        color: #667eea;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+
+    /* Adjust body padding for navbar */
+    body {
+        padding-top: 70px;
     }
 
     #chatbot-button {
@@ -46,8 +115,8 @@
         position: fixed;
         bottom: 90px;
         right: 20px;
-        width: 400px;
-        height: 600px;
+        width: 300px;
+        height: 500px;
         background-color: #fff;
         border-radius: 20px;
         z-index: 1000;
@@ -226,7 +295,49 @@
   </style>
 </head>
 <body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="{% url 'home' %}" class="navbar-brand">
+      <i class="fas fa-robot"></i> Niulize Chat
+    </a>
+    <div class="navbar-nav">
+      {% if user.is_authenticated %}
+        <span class="user-info">
+          <i class="fas fa-user"></i> Welcome, {{ user.username }}!
+        </span>
+        <a href="{% url 'logout' %}" class="nav-link logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      {% else %}
+        <a href="{% url 'login' %}" class="nav-link">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a href="{% url 'register' %}" class="nav-link">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Messages Display -->
+  {% if messages %}
+    <div style="position: fixed; top: 70px; right: 20px; z-index: 1002; max-width: 300px;">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   {% csrf_token %}
+  
+  {% block content %}
+  <!-- Default content block -->
+  {% endblock %}
+
+  {% block chatbot %}
   <!-- Chat Button -->
   <button id="chatbot-button"><i class="fa-regular fa-comment-dots"></i></button>
 
@@ -236,6 +347,7 @@
         <h1>Niulize Mimi</h1>
         <p>Ask me anything about our services!</p>
     </div>
+    
     <div id="chatbot-messages">
         <!-- Welcome message -->
         <div class="chat-message bot">
@@ -263,7 +375,28 @@
         <button id="send-btn">Send</button>
     </div>
   </div>
+  {% endblock chatbot %}
 
+<!-- Core JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Common Scripts -->
+<script>
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        });
+    });
+</script>
+
+<!-- Chatbot Scripts -->
+{% block chatbot_scripts %}
 <script>
     const chatButton = document.getElementById('chatbot-button');
     const chatWindow = document.getElementById('chatbot-window');
@@ -374,5 +507,9 @@
         }
     }
 </script>
+{% endblock %}
+
+<!-- Page-specific Scripts -->
+{% block extra_js %}{% endblock %}
 </body>
 </html>

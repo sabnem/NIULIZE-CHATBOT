@@ -33,9 +33,9 @@ class FAQAdmin(admin.ModelAdmin):
 
 @admin.register(ChatLog)
 class ChatLogAdmin(admin.ModelAdmin):
-    list_display = ['timestamp', 'user_message_preview', 'matched_faq', 'ip_address']
-    list_filter = ['timestamp', 'matched_faq__category']
-    search_fields = ['user_message', 'bot_response']
+    list_display = ['timestamp', 'user', 'user_message_preview', 'matched_faq', 'ip_address']
+    list_filter = ['timestamp', 'matched_faq__category', 'user']
+    search_fields = ['user_message', 'bot_response', 'user__username']
     readonly_fields = ['timestamp']
     date_hierarchy = 'timestamp'
     
