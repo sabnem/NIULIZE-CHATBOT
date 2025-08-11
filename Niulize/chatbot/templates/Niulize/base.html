@@ -68,11 +68,26 @@
     }
 
     .nav-link.logout {
-        color: rgb(166, 62, 62);
+        color: rgb(246, 241, 241);
     }
 
     .nav-link.logout:hover {
-        background: #c82333;
+        color: rgb(145, 50, 50);
+    }
+
+    .auth-buttons {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .nav-link {
+        padding: 8px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+        transform: translateY(-2px);
     }
 
     .user-info {
@@ -302,19 +317,23 @@
     </a>
     <div class="navbar-nav">
       {% if user.is_authenticated %}
+      <div class="auth-buttons">
         <span class="user-info">
           <i class="fas fa-user"></i> Welcome, {{ user.username }}!
         </span>
         <a href="{% url 'logout' %}" class="nav-link logout">
           <i class="fas fa-sign-out-alt"></i> Logout
         </a>
+      </div>
       {% else %}
-        <a href="{% url 'login' %}" class="nav-link">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-        <a href="{% url 'register' %}" class="nav-link">
-          <i class="fas fa-user-plus"></i> Register
-        </a>
+        <div class="auth-buttons">
+          <a href="{% url 'login' %}" class="nav-link">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </a>
+          <a href="{% url 'register' %}" class="nav-link">
+            <i class="fas fa-user-plus"></i> Register
+          </a>
+        </div>
       {% endif %}
     </div>
   </nav>
@@ -478,7 +497,7 @@
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
             // Send request to Django backend
-            const response = await fetch('/chatbot/', {
+            const response = await fetch('{% url "chatbot" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -487,10 +506,20 @@
                 body: JSON.stringify({ message: text })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
+            console.log('Bot response:', data);  // Debug log
             
             // Hide typing indicator
             hideTypingIndicator();
+            
+            if (data.status === 'error') {
+                console.error('Error from server:', data.response);
+                throw new Error(data.response);
+            }
             
             // Add bot response
             appendMessage(data.response, 'bot');
@@ -498,7 +527,7 @@
         } catch (error) {
             console.error('Error:', error);
             hideTypingIndicator();
-            appendMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            appendMessage('⚠️ ' + (error.message || 'An unexpected error occurred. Please try again.'), 'bot');
         } finally {
             // Re-enable input and button
             input.disabled = false;

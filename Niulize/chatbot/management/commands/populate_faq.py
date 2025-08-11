@@ -49,53 +49,53 @@ class Command(BaseCommand):
         # Create FAQs
         faqs_data = [
             {
-                'title': 'Greeting',
+                'title': 'What is Niulize Chat?',
                 'category': general_cat,
-                'keywords': 'hello, hi, hey, good morning, good afternoon, good evening, greetings',
-                'response': 'Hello! Welcome to Niulize. How can I help you today? You can ask me about our services, pricing, support, or contact information.',
-                'priority': 10
+                'keywords': 'what is niulize, about, introduction, chatbot, AI, who are you, what do you do',
+                'response': 'Hello! I am Niulize Chat, an AI assistant designed to help you with information about our services and support. I can answer questions about our services, pricing, technical support, and more. How can I assist you today?',
+                'priority': 100
             },
             {
-                'title': 'Services Overview',
+                'title': 'Our Services',
                 'category': services_cat,
-                'keywords': 'service, services, what do you do, what do you offer, products, web development, mobile app, digital marketing',
-                'response': 'We offer comprehensive digital solutions:\n• Web Development (Custom websites, e-commerce)\n• Mobile App Development (iOS & Android)\n• Digital Marketing (SEO, Social Media, PPC)\n• UI/UX Design\n• Consulting Services\n\nWhich service interests you most?',
-                'priority': 9
+                'keywords': 'services, offerings, what services, solutions, products, development, consulting',
+                'response': '🚀 We offer comprehensive digital solutions:\n\n💻 Web Development\n• Custom websites and web applications\n• E-commerce solutions\n• Progressive Web Apps (PWA)\n\n📱 Mobile Development\n• iOS and Android apps\n• Cross-platform solutions\n• App maintenance\n\n🤖 AI & Machine Learning\n• Custom AI solutions\n• Chatbots & Virtual Assistants\n• Data Analytics\n\n🎨 Design Services\n• UI/UX Design\n• Brand Identity\n• User Research\n\nWhich service would you like to know more about?',
+                'priority': 95
             },
             {
-                'title': 'Web Development',
+                'title': 'Technology Stack',
                 'category': services_cat,
-                'keywords': 'web development, website, web design, html, css, javascript, frontend, backend',
-                'response': 'Our web development services include:\n• Custom website development\n• E-commerce solutions\n• Content Management Systems\n• Responsive design\n• Website maintenance\n\nWe use modern technologies like React, Django, and Node.js.',
-                'priority': 8
+                'keywords': 'technology, tech stack, programming languages, frameworks, tools, software',
+                'response': '🛠️ Our Technology Stack:\n\n📚 Frontend\n• React.js / Next.js\n• Vue.js / Nuxt.js\n• TypeScript\n\n⚙️ Backend\n• Python / Django\n• Node.js / Express\n• Java Spring Boot\n\n📱 Mobile\n• React Native\n• Flutter\n• Swift & Kotlin\n\n🗄️ Databases\n• PostgreSQL\n• MongoDB\n• Redis\n\n☁️ Cloud\n• AWS\n• Google Cloud\n• Azure',
+                'priority': 90
             },
             {
-                'title': 'Mobile App Development',
-                'category': services_cat,
-                'keywords': 'mobile app, app development, ios, android, mobile application',
-                'response': 'We develop mobile applications for:\n• iOS (iPhone/iPad)\n• Android devices\n• Cross-platform solutions\n• App Store optimization\n• App maintenance and updates\n\nOur apps are built using React Native and native technologies.',
-                'priority': 8
-            },
-            {
-                'title': 'Pricing Information',
+                'title': 'Pricing and Packages',
                 'category': pricing_cat,
-                'keywords': 'price, pricing, cost, how much, expensive, cheap, affordable, quote, estimate',
-                'response': 'Our pricing structure:\n• Web Development: Starting from $2,000\n• Mobile Apps: Starting from $5,000\n• Digital Marketing: $500-2,000/month\n• Custom quotes available\n\nContact us for a detailed proposal tailored to your needs.',
-                'priority': 9
+                'keywords': 'price, cost, rates, packages, how much, pricing, payment, fees',
+                'response': '💰 Our Pricing Options:\n\n🎯 Project-Based\n• Web Apps: From $5,000\n• Mobile Apps: From $10,000\n• Custom Solutions: Based on requirements\n\n⏱️ Time & Materials\n• Senior Developer: $80-100/hour\n• Mid-level Developer: $60-80/hour\n• Designer: $70-90/hour\n\n🤝 Retainer Packages\n• Basic: $2,000/month\n• Professional: $5,000/month\n• Enterprise: Custom\n\n💡 All packages include:\n• Regular Updates\n• Technical Support\n• Documentation\n\nContact us for a detailed quote!',
+                'priority': 85
             },
             {
-                'title': 'Contact Information',
+                'title': 'Contact and Support',
                 'category': contact_cat,
-                'keywords': 'contact, phone, email, address, reach you, get in touch',
-                'response': 'Contact Information:\n📧 Email: info@niulize.com\n📞 Phone: +1-234-567-8900\n💬 WhatsApp: +1-234-567-8900\n📍 Address: 123 Business Street, City, State 12345\n🌐 Website: www.niulize.com',
-                'priority': 9
+                'keywords': 'contact, reach, support, help, assistance, phone, email, office',
+                'response': '📞 Contact Information:\n\n📧 Email\n• General: hello@niulize.com\n• Support: support@niulize.com\n\n☎️ Phone\n• Main: +254 700 000000\n• Support: +254 700 000001\n\n⏰ Business Hours\n• Monday-Friday: 8am-6pm EAT\n• Weekend Support: Emergency only\n\n📍 Location\n• Nairobi, Kenya\n• Remote teams worldwide\n\n💬 Live Chat\n• Available 24/7 through our website',
+                'priority': 80
             },
             {
-                'title': 'Technical Support',
+                'title': 'Development Process',
+                'category': services_cat,
+                'keywords': 'process, development, how it works, steps, methodology, timeline',
+                'response': '🔄 Our Development Process:\n\n1. 📋 Discovery & Planning\n• Requirements gathering\n• Technical analysis\n• Project roadmap\n\n2. 🎨 Design\n• UI/UX design\n• Prototyping\n• Design review\n\n3. 🛠️ Development\n• Agile methodology\n• Regular updates\n• Quality assurance\n\n4. 🚀 Deployment\n• Testing\n• Launch\n• Monitoring\n\n5. � Maintenance\n• Regular updates\n• Performance monitoring\n• Security patches\n\nTypical Timeline: 2-6 months depending on project scope.',
+                'priority': 75
+            },
+            {
+                'title': 'Support Plans',
                 'category': contact_cat,
-                'keywords': 'support, help, problem, issue, bug, technical, assistance',
-                'response': 'Technical Support:\n📧 Email: support@niulize.com\n📞 Hotline: +1-234-567-8901\n⏰ Hours: Monday-Friday, 9 AM - 6 PM\n🎫 Ticket System: Available on our website\n\nFor urgent issues, please call our hotline.',
-                'priority': 8
+                'keywords': 'support plans, maintenance, service level, response time, technical support',
+                'response': '🛡️ Support & Maintenance Plans:\n\n🌟 Standard Support\n• Response time: 24 hours\n• Email support\n• Bug fixes\n• $500/month\n\n💎 Premium Support\n• Response time: 4 hours\n• Priority email & phone\n• Bug fixes & updates\n• Monthly reports\n• $1,000/month\n\n👑 Enterprise Support\n• Response time: 1 hour\n• 24/7 dedicated support\n• Custom SLA\n• Contact for pricing',
+                'priority': 70
             },
             {
                 'title': 'Business Hours',

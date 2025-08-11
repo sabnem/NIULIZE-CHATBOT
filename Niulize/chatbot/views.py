@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+import json
+import re
 from .models import FAQ, ChatLog
 import json
 import re
@@ -20,61 +22,67 @@ def get_client_ip(request):
 
 def find_best_match(user_message):
     """Find the best matching FAQ response from database based on keywords"""
-    user_message = user_message.lower().strip()
-    
-    # Remove common punctuation
-    user_message = re.sub(r'[?!.,]', '', user_message)
-    
-    # Get all active FAQs ordered by priority
-    faqs = FAQ.objects.filter(is_active=True).order_by('-priority', 'title')
-    
-    # Check for exact or partial matches with scoring
-    best_match = None
-    highest_score = 0
-    matched_faq = None
-    
-    for faq in faqs:
-        score = 0
-        keywords = faq.get_keywords_list()
+    try:
+        user_message = user_message.lower().strip()
         
-        for keyword in keywords:
-            if keyword in user_message:
-                # Give higher score for longer keyword matches
-                score += len(keyword.split())
+        # Remove common punctuation
+        user_message = re.sub(r'[?!.,]', '', user_message)
         
-        if score > highest_score:
-            highest_score = score
-            best_match = faq.response
-            matched_faq = faq
-    
-    # Return best match or default response
-    if best_match:
-        return best_match, matched_faq
-    
-    # Default response with suggestions
-    default_response = """I'm sorry, I didn't understand your question. Here are some topics I can help with:
+        # Get all active FAQs ordered by priority
+        faqs = FAQ.objects.filter(is_active=True).order_by('-priority', 'title')
+        
+        if not faqs.exists():
+            return "I apologize, but my FAQ database is currently empty. Please contact the administrator.", None
+        
+        # Check for exact or partial matches with scoring
+        best_match = None
+        highest_score = 0
+        matched_faq = None
+        
+        # Split user message into words for better matching
+        user_words = set(user_message.split())
+        
+        for faq in faqs:
+            score = 0
+            keywords = faq.get_keywords_list()
+            
+            # Check exact phrase match
+            if user_message in faq.title.lower() or user_message in faq.response.lower():
+                score += 10
+            
+            # Check keyword matches
+            for keyword in keywords:
+                keyword = keyword.lower().strip()
+                if keyword in user_message:
+                    score += 3 * len(keyword.split())  # Weight longer phrases more heavily
+                
+                # Check individual word matches
+                keyword_words = set(keyword.split())
+                matching_words = user_words.intersection(keyword_words)
+                score += len(matching_words)
+            
+            if score > highest_score:
+                highest_score = score
+                best_match = faq.response
+                matched_faq = faq
+        
+        # Return best match if score is above threshold
+        if highest_score >= 1:
+            return best_match, matched_faq
+        
+        # Default response with suggestions
+        suggestions = "\n".join([f"• {faq.title}" for faq in faqs[:5]])
+        default_response = f"""I'm not quite sure what you're asking. Here are some topics I can help with:
 
-🏢 **Company Information:**
-• About our team and company
-• Our portfolio and case studies
+{suggestions}
 
-💼 **Services:**
-• Web development
-• Mobile app development
-• Digital marketing
+Please try asking about one of these topics or rephrase your question."""
+        
+        return default_response, None
 
-💰 **Business:**
-• Pricing and quotes
-• Technologies we use
-
-📞 **Contact & Support:**
-• Contact information
-• Business hours and location
-• Technical support
-
-Please try asking about one of these topics, or rephrase your question."""
-    
-    return default_response, None
+    except Exception as e:
+        print(f"Error in find_best_match: {str(e)}")
+        return "I apologize, but I encountered an error. Please try again.", None
 
 @csrf_exempt
 def chatbot_view(request):
@@ -96,23 +104,30 @@ def chatbot_view(request):
             print(f"User question: {user_message}")
             
             # Find the best matching response from database
-            bot_response, matched_faq = find_best_match(user_message)
-            
-            # Log the bot response (optional, for debugging)
-            print(f"Bot answer: {bot_response[:50]}...")
-            
-            # Save chat log to database
             try:
-                ChatLog.objects.create(
-                    user=request.user if request.user.is_authenticated else None,
-                    user_message=user_message,
-                    bot_response=bot_response,
-                    matched_faq=matched_faq,
-                    ip_address=get_client_ip(request)
-                )
-            except Exception as log_error:
-                print(f"Error saving chat log: {str(log_error)}")
-                # Continue even if logging fails
+                bot_response, matched_faq = find_best_match(user_message)
+                if not bot_response:
+                    raise ValueError("No response generated")
+                
+                # Log the bot response (optional, for debugging)
+                print(f"User question: {user_message}")
+                print(f"Bot answer: {bot_response[:100]}...")
+                
+                # Save chat log to database
+                try:
+                    ChatLog.objects.create(
+                        user=request.user if request.user.is_authenticated else None,
+                        user_message=user_message,
+                        bot_response=bot_response,
+                        matched_faq=matched_faq,
+                        ip_address=get_client_ip(request)
+                    )
+                except Exception as log_error:
+                    print(f"Error saving chat log: {str(log_error)}")
+                    # Continue even if logging fails
+            except Exception as match_error:
+                print(f"Error finding match: {str(match_error)}")
+                raise
             
             return JsonResponse({
                 'response': bot_response,

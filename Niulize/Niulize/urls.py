@@ -20,6 +20,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chatbot/', include('chatbot.urls')),
-    path('', include('chatbot.urls')),  # Redirect root to chatbot home
+    path('', include('chatbot.urls')),  # Include all chatbot URLs at root
 ]
