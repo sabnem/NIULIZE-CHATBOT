@@ -1,2 +1,2 @@
 # Niulize-ChatBot
-Answers variuos questions posed by user to seek appropriate and desired answer for problem to be resolved
+Answers various questions posed by the user to seek the appropriate and desired answer for the problem to be resolved
